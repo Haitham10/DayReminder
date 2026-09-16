@@ -12,4 +12,7 @@
 /captures
 .externalNativeBuild
 .cxx
+# Local generated artifacts
+.artifacts/
+/.idea/markdown.xml
 local.properties
