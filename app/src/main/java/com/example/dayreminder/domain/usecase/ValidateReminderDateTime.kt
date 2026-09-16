@@ -1,6 +1,9 @@
 package com.example.dayreminder.domain.usecase
 
-class ValidateReminderDateTime {
+import javax.inject.Inject
+
+class ValidateReminderDateTime @Inject constructor() {
+
     operator fun invoke(
         reminderTime: Long,
         currentTime: Long
