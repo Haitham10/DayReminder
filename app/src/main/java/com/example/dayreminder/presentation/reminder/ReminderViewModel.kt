@@ -9,10 +9,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.example.dayreminder.domain.model.Reminder
+import com.example.dayreminder.presentation.reminder.state.CalendarUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import kotlinx.coroutines.flow.combine
+import java.time.Instant
+import java.time.ZoneId
 
 @HiltViewModel
 class ReminderViewModel @Inject constructor(
@@ -21,6 +28,12 @@ class ReminderViewModel @Inject constructor(
     private val updateReminder: UpdateReminder,
     private val deleteReminder: DeleteReminder
 ) : ViewModel() {
+    private val _calendarUiState = MutableStateFlow(
+        CalendarUiState()
+    )
+
+    val calendarUiState: StateFlow<CalendarUiState> =
+        _calendarUiState
 
     val reminders: StateFlow<List<Reminder>> =
         getAllReminders()
@@ -44,6 +57,62 @@ class ReminderViewModel @Inject constructor(
                 reminder = reminder,
                 currentTime = System.currentTimeMillis()
             )
+        }
+    }
+    fun onDateSelected(date: LocalDate) {
+        _calendarUiState.update { currentState ->
+            currentState.copy(
+                selectedDate = date
+            )
+        }
+    }
+    fun onNextMonth() {
+        _calendarUiState.update { currentState ->
+            currentState.copy(
+                currentMonth = currentState.currentMonth.plusMonths(1)
+            )
+        }
+    }
+
+    fun onPreviousMonth() {
+        _calendarUiState.update { currentState ->
+            currentState.copy(
+                currentMonth = currentState.currentMonth.minusMonths(1)
+            )
+        }
+    }
+    val selectedDateReminders: StateFlow<List<Reminder>> =
+        combine(
+            reminders,
+            calendarUiState
+        ) { remindersList, calendarState ->
+
+            remindersList.filter { reminder ->
+
+                val reminderDate = Instant
+                    .ofEpochMilli(reminder.dateTimeMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+
+                reminderDate == calendarState.selectedDate
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    fun onReminderCompletedChange(
+        reminder: Reminder,
+        isCompleted: Boolean
+    ) {
+        viewModelScope.launch {
+
+            val updatedReminder = reminder.copy(
+                isCompleted = isCompleted
+            )
+
+            updateReminder(updatedReminder)
         }
     }
 }
