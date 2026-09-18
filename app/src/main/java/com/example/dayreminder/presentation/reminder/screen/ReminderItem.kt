@@ -14,12 +14,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 
 @Composable
 fun ReminderItem(
     reminder: Reminder,
-    onCompletedChange: (Boolean) -> Unit
+    onCompletedChange: (Boolean) -> Unit,
+    onDeleteClick: () -> Unit
 ) {
 
     val time = Instant
@@ -57,10 +59,21 @@ fun ReminderItem(
                 )
             }
 
-            Checkbox(
-                checked = reminder.isCompleted,
-                onCheckedChange = onCompletedChange
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Checkbox(
+                    checked = reminder.isCompleted,
+                    onCheckedChange = onCompletedChange
+                )
+
+                TextButton(
+                    onClick = onDeleteClick
+                ) {
+                    Text("Delete")
+                }
+            }
         }
     }
 }
