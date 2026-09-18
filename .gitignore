@@ -15,4 +15,6 @@
 # Local generated artifacts
 .artifacts/
 /.idea/markdown.xml
+# Android Studio local inspection settings
+.idea/inspectionProfiles/
 local.properties
